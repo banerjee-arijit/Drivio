@@ -42,10 +42,22 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials." });
     }
     const token = await user.generateAuthToken();
+    res.cookie("token", token);
     res.json({ message: "User logged in successfully.", token, user });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
 };
 
-export { registerUser, loginUser };
+//controller for getting user profile
+const getUserProfile = async (req, res) => {
+  res.json({ user: req.user });
+};
+
+//controller for logout a user
+const logoutUser = async (req, res) => {
+  res.clearCookie("token");
+  res.json({ message: "User logged out successfully." });
+};
+
+export { registerUser, loginUser, getUserProfile, logoutUser };
