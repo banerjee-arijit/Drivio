@@ -334,6 +334,182 @@ The request body must be in JSON format and should include the following fields:
 
 ---
 
+## /api/driver/login
+
+### Description
+
+This endpoint allows drivers to log in with their email and password. On successful authentication, a JWT token and driver data are returned.
+
+### Request Method
+
+POST
+
+### Request Body
+
+The request body must be in JSON format and should include the following fields:
+
+- `email` (string, required): The email address of the driver.
+- `password` (string, required): The password for the driver account.
+
+#### Example Request
+
+```json
+{
+  "email": "driver@example.com",
+  "password": "securePassword123"
+}
+```
+
+### Response
+
+- **200 OK**: Returned when the driver is successfully authenticated.
+
+  ```json
+  {
+    "message": "Driver logged in successfully.",
+    "token": "<jwt_token>",
+    "driver": {
+      "_id": "67890",
+      "username": "driverUser",
+      "email": "driver@example.com",
+      "vehicle": {
+        "capacity": 4,
+        "vehicleType": "car",
+        "vehicleNumber": "ABC1234"
+      },
+      "createdAt": "2024-06-01T12:00:00.000Z",
+      "updatedAt": "2024-06-01T12:00:00.000Z",
+      "__v": 0
+    }
+  }
+  ```
+
+- **400 Bad Request**: Returned when the request body is missing required fields or if the data is invalid.
+
+  ```json
+  {
+    "errors": [
+      {
+        "msg": "Invalid email",
+        "param": "email",
+        "location": "body"
+      }
+    ]
+  }
+  ```
+
+  or
+
+  ```json
+  {
+    "message": "All fields are required."
+  }
+  ```
+
+- **401 Unauthorized**: Returned when the credentials are invalid.
+  ```json
+  {
+    "message": "Invalid credentials."
+  }
+  ```
+
+---
+
+## /api/driver/profile
+
+### Description
+
+This endpoint returns the profile information of the currently authenticated driver. Authentication via JWT token (cookie) is required.
+
+### Request Method
+
+GET
+
+### Authentication
+
+- Requires a valid JWT token in the `token` cookie (set during login).
+
+### Example Request
+
+```
+GET /api/driver/profile
+Cookie: token=<jwt_token>
+```
+
+### Response
+
+- **200 OK**: Returned when the driver is authenticated and the profile is fetched successfully.
+
+  ```json
+  {
+    "driver": {
+      "_id": "67890",
+      "username": "driverUser",
+      "email": "driver@example.com",
+      "vehicle": {
+        "capacity": 4,
+        "vehicleType": "car",
+        "vehicleNumber": "ABC1234"
+      },
+      "currentStatus": "offline",
+      "createdAt": "2024-06-01T12:00:00.000Z",
+      "updatedAt": "2024-06-01T12:00:00.000Z",
+      "__v": 0
+    }
+  }
+  ```
+
+- **401 Unauthorized**: Returned when the driver is not authenticated or the token is missing/invalid.
+
+  ```json
+  {
+    "message": "Unauthorized"
+  }
+  ```
+
+---
+
+## /api/driver/logout
+
+### Description
+
+This endpoint logs out the currently authenticated driver by clearing the authentication token cookie.
+
+### Request Method
+
+GET
+
+### Authentication
+
+- Requires a valid JWT token in the `token` cookie (set during login).
+
+### Example Request
+
+```
+GET /api/driver/logout
+Cookie: token=<jwt_token>
+```
+
+### Response
+
+- **200 OK**: Returned when the driver is logged out successfully.
+
+  ```json
+  {
+    "message": "Driver logged out successfully."
+  }
+  ```
+
+- **401 Unauthorized**: Returned when the driver is not authenticated or the token is missing/invalid.
+
+  ```json
+  {
+    "message": "Unauthorized"
+  }
+  ```
+
+---
+
 ### Status Codes
 
 - 201: Created (register)
