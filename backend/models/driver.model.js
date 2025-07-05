@@ -1,9 +1,9 @@
-import mongoose from "mongoose";
+import { mongoose } from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-//defining the user schema with necessary fields
-const userSchema = new mongoose.Schema(
+//defining the driver schema with necessary fields
+const driverschema = new mongoose.Schema(
   {
     username: {
       type: String,
@@ -25,12 +25,42 @@ const userSchema = new mongoose.Schema(
       type: String,
       unique: true,
     },
+    currentStatus: {
+      type: String,
+      enum: ["online", "offline", "onTrip"],
+      default: "offline",
+    },
+    vehicle: {
+      capacity: {
+        type: Number,
+        required: true,
+      },
+      vehicleType: {
+        type: String,
+        enum: ["car", "bike", "auto"],
+        required: true,
+      },
+      vehicleNumber: {
+        type: String,
+        required: true,
+      },
+    },
+
+    currentLocation: {
+      latitude: {
+        type: Number,
+      },
+      longitude: {
+        type: Number,
+      },
+    },
+    currentTrip: {},
   },
   { timestamps: true }
 );
 
 //generating a JWT token for user authentication
-userSchema.methods.generateAuthToken = function () {
+driverschema.methods.generateAuthToken = function () {
   const token = jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
     expiresIn: "7d",
   });
@@ -38,13 +68,13 @@ userSchema.methods.generateAuthToken = function () {
 };
 
 //checking the password against the hashed password stored in the database
-userSchema.methods.comparePassword = async function (candidatePassword) {
+driverschema.methods.comparePassword = async function (candidatePassword) {
   const isMatch = await bcrypt.compare(candidatePassword, this.password);
   return isMatch;
 };
 
 //hashing the password before saving it to the database
-userSchema.pre("save", async function (next) {
+driverschema.pre("save", async function (next) {
   if (this.isModified("password")) {
     const hashedPassword = await bcrypt.hash(this.password, 10);
     this.password = hashedPassword;
@@ -52,6 +82,6 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-const UserModel = mongoose.model("User", userSchema);
+const DriverModel = mongoose.model("Driver", driverschema);
 
-export default UserModel;
+export default DriverModel;

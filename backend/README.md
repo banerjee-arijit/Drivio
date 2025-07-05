@@ -233,6 +233,107 @@ Cookie: token=<jwt_token>
 
 ---
 
+## /api/driver/register
+
+### Description
+
+This endpoint allows drivers to register by providing their details and vehicle information. Upon successful registration, a new driver will be created in the database.
+
+### Request Method
+
+POST
+
+### Request Body
+
+The request body must be in JSON format and should include the following fields:
+
+- `username` (string, required): The desired username for the driver.
+- `email` (string, required): The email address of the driver.
+- `password` (string, required): The password for the driver account.
+- `vehicle` (object, required): The vehicle information, with the following fields:
+  - `capacity` (number, required): The capacity of the vehicle.
+  - `vehicleType` (string, required): The type of vehicle. Must be one of: `car`, `bike`, `auto`.
+  - `vehicleNumber` (string, required): The vehicle's registration number.
+
+#### Example Request
+
+```json
+{
+  "username": "driverUser",
+  "email": "driver@example.com",
+  "password": "securePassword123",
+  "vehicle": {
+    "capacity": 4,
+    "vehicleType": "car",
+    "vehicleNumber": "ABC1234"
+  }
+}
+```
+
+### Response
+
+- **201 Created**: Returned when the driver is successfully registered.
+
+  ```json
+  {
+    "message": "Driver registered successfully.",
+    "token": "<jwt_token>",
+    "driver": {
+      "_id": "67890",
+      "username": "driverUser",
+      "email": "driver@example.com",
+      "vehicle": {
+        "capacity": 4,
+        "vehicleType": "car",
+        "vehicleNumber": "ABC1234"
+      },
+      "createdAt": "2024-06-01T12:00:00.000Z",
+      "updatedAt": "2024-06-01T12:00:00.000Z",
+      "__v": 0
+    }
+  }
+  ```
+
+- **400 Bad Request**: Returned when the request body is missing required fields, data is invalid, or the email already exists.
+
+  ```json
+  {
+    "errors": [
+      {
+        "msg": "Username is required",
+        "param": "username",
+        "location": "body"
+      }
+    ]
+  }
+  ```
+
+  or
+
+  ```json
+  {
+    "message": "All fields are required."
+  }
+  ```
+
+  or
+
+  ```json
+  {
+    "message": "Email already exists."
+  }
+  ```
+
+- **500 Internal Server Error**: Returned when an unexpected error occurs on the server.
+
+  ```json
+  {
+    "message": "<error message>"
+  }
+  ```
+
+---
+
 ### Status Codes
 
 - 201: Created (register)

@@ -1,5 +1,5 @@
 import express from "express";
-const router = express.Router();
+const userRouter = express.Router();
 import { body } from "express-validator";
 import {
   registerUser,
@@ -10,7 +10,7 @@ import {
 import authMiddleware from "../middlewares/auth.middleware.js";
 
 //resister user
-router.post(
+userRouter.post(
   "/register",
   [
     body("username").notEmpty().withMessage("Username is required"),
@@ -23,7 +23,7 @@ router.post(
 );
 
 //login user
-router.post(
+userRouter.post(
   "/login",
   [
     body("email").isEmail().withMessage("Invalid email"),
@@ -33,9 +33,9 @@ router.post(
 );
 
 //profile page
-router.get("/profile", authMiddleware, getUserProfile);
+userRouter.get("/profile", authMiddleware, getUserProfile);
 
 //logout user
-router.get("/logout", authMiddleware, logoutUser);
+userRouter.get("/logout", authMiddleware, logoutUser);
 
-export default router;
+export default userRouter;
