@@ -3,52 +3,152 @@
 ## /api/users/register
 
 ### Description
+
 This endpoint allows users to register by providing their details. Upon successful registration, a new user will be created in the database.
 
 ### Request Method
+
 POST
 
 ### Request Body
+
 The request body must be in JSON format and should include the following fields:
 
 - `username` (string, required): The desired username for the new user.
 - `email` (string, required): The email address of the user.
 - `password` (string, required): The password for the user account.
 
-### Example Request
+#### Example Request
+
+```json
 {
   "username": "exampleUser",
   "email": "user@example.com",
   "password": "securePassword123"
 }
+```
 
 ### Response
+
 - **201 Created**: Returned when the user is successfully registered.
-  - Example Response:
+
+  ```json
   {
-    "message": "User registered successfully",
+    "message": "User registered successfully.",
+    "token": "<jwt_token>",
     "user": {
-      "id": "12345",
+      "_id": "12345",
       "username": "exampleUser",
-      "email": "user@example.com"
+      "email": "user@example.com",
+      "createdAt": "2024-06-01T12:00:00.000Z",
+      "updatedAt": "2024-06-01T12:00:00.000Z",
+      "__v": 0
     }
   }
+  ```
 
 - **400 Bad Request**: Returned when the request body is missing required fields or if the data is invalid.
-  - Example Response:
+  ```json
   {
-    "error": "Validation error: username, email, and password are required."
+    "errors": [
+      {
+        "msg": "Username is required",
+        "param": "username",
+        "location": "body"
+      }
+    ]
   }
+  ```
+  or
+  ```json
+  {
+    "message": "All fields are required."
+  }
+  ```
 
-- **409 Conflict**: Returned when the username or email already exists in the database.
-  - Example Response:
+---
+
+## /api/users/login
+
+### Description
+
+This endpoint allows users to log in with their email and password. On successful authentication, a JWT token and user data are returned.
+
+### Request Method
+
+POST
+
+### Request Body
+
+The request body must be in JSON format and should include the following fields:
+
+- `email` (string, required): The email address of the user.
+- `password` (string, required): The password for the user account.
+
+#### Example Request
+
+```json
+{
+  "email": "user@example.com",
+  "password": "securePassword123"
+}
+```
+
+### Response
+
+- **200 OK**: Returned when the user is successfully authenticated.
+
+  ```json
   {
-    "error": "User already exists with this email or username."
+    "message": "User logged in successfully.",
+    "token": "<jwt_token>",
+    "user": {
+      "_id": "12345",
+      "username": "exampleUser",
+      "email": "user@example.com",
+      "createdAt": "2024-06-01T12:00:00.000Z",
+      "updatedAt": "2024-06-01T12:00:00.000Z",
+      "__v": 0
+    }
   }
+  ```
+
+- **400 Bad Request**: Returned when the request body is missing required fields or if the data is invalid.
+
+  ```json
+  {
+    "errors": [
+      {
+        "msg": "Invalid email",
+        "param": "email",
+        "location": "body"
+      }
+    ]
+  }
+  ```
+
+  or
+
+  ```json
+  {
+    "message": "All fields are required."
+  }
+  ```
+
+- **401 Unauthorized**: Returned when the credentials are invalid.
+  ```json
+  {
+    "message": "Invalid credentials."
+  }
+  ```
+
+---
 
 ### Status Codes
-- 201: Created
-- 400: Bad Request
-- 409: Conflict
 
-This documentation provides a clear understanding of how to use the `/api/users/register` endpoint, including the required data and possible responses.
+- 201: Created (register)
+- 200: OK (login)
+- 400: Bad Request
+- 401: Unauthorized
+
+This documentation provides a clear understanding of how to use the `/api/users/register` and `/api/users/login` endpoints, including the required data and possible

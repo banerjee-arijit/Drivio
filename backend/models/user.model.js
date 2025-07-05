@@ -21,7 +21,6 @@ const userSchema = new mongoose.Schema(
       required: true,
       minlength: 8,
       maxlength: 20,
-      select: false,
     },
     socketID: {
       type: String,

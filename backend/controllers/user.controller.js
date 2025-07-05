@@ -1,11 +1,12 @@
 import UserModel from "../models/user.model.js";
 import { validationResult } from "express-validator";
 
+//controller for registering a new user
 const registerUser = async (req, res) => {
-  const erros = validationResult(req);
+  const errors = validationResult(req);
 
-  if (!erros.isEmpty()) {
-    return res.status(400).json({ errors: erros.array() });
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
   }
 
   try {
@@ -24,4 +25,27 @@ const registerUser = async (req, res) => {
   }
 };
 
-export { registerUser };
+//controller for login a user
+const loginUser = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+    const user = await UserModel.findOne({ email });
+    const isMatch = await user.comparePassword(password);
+    if (!user || !isMatch) {
+      return res.status(401).json({ message: "Invalid credentials." });
+    }
+    const token = await user.generateAuthToken();
+    res.json({ message: "User logged in successfully.", token, user });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+};
+
+export { registerUser, loginUser };
