@@ -144,6 +144,95 @@ The request body must be in JSON format and should include the following fields:
 
 ---
 
+## /api/users/profile
+
+### Description
+
+This endpoint returns the profile information of the currently authenticated user. Authentication via JWT token (cookie) is required.
+
+### Request Method
+
+GET
+
+### Authentication
+
+- Requires a valid JWT token in the `token` cookie (set during login).
+
+### Example Request
+
+```
+GET /api/users/profile
+Cookie: token=<jwt_token>
+```
+
+### Response
+
+- **200 OK**: Returned when the user is authenticated and the profile is fetched successfully.
+
+  ```json
+  {
+    "user": {
+      "_id": "12345",
+      "username": "exampleUser",
+      "email": "user@example.com",
+      "createdAt": "2024-06-01T12:00:00.000Z",
+      "updatedAt": "2024-06-01T12:00:00.000Z",
+      "__v": 0
+    }
+  }
+  ```
+
+- **401 Unauthorized**: Returned when the user is not authenticated or the token is missing/invalid.
+
+  ```json
+  {
+    "message": "Unauthorized"
+  }
+  ```
+
+---
+
+## /api/users/logout
+
+### Description
+
+This endpoint logs out the currently authenticated user by clearing the authentication token cookie.
+
+### Request Method
+
+GET
+
+### Authentication
+
+- Requires a valid JWT token in the `token` cookie (set during login).
+
+### Example Request
+
+```
+GET /api/users/logout
+Cookie: token=<jwt_token>
+```
+
+### Response
+
+- **200 OK**: Returned when the user is logged out successfully.
+
+  ```json
+  {
+    "message": "User logged out successfully."
+  }
+  ```
+
+- **401 Unauthorized**: Returned when the user is not authenticated or the token is missing/invalid.
+
+  ```json
+  {
+    "message": "Unauthorized"
+  }
+  ```
+
+---
+
 ### Status Codes
 
 - 201: Created (register)
