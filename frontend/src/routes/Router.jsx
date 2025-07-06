@@ -3,13 +3,13 @@ import Homepage from "./../pages/Homepage";
 import UserLoginpage from "./../pages/UserLoginpage";
 import UserSignUppage from "./../pages/UserSignUppage";
 import DriverLoginPage from "./../pages/DriverLoginPage";
-import DriverSignUpPage from "./../pages/DriverSignUpPage";
+import DriverSignUpPage from "@/pages/DriverSignUpPage";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Homepage />,
-    exact: true,
+    // exact: true,
   },
   {
     path: "/login",
