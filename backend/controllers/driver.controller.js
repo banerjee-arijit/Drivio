@@ -81,4 +81,39 @@ const logoutDriver = async (req, res) => {
   res.json({ message: "Driver logged out successfully." });
 };
 
-export { registerDriver, loginDriver, getDriverProfile, logoutDriver };
+//controller for updating driver status
+const updateDriverStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const validStatuses = ["online", "offline", "onTrip"];
+
+    if (!validStatuses.includes(status)) {
+      return res
+        .status(400)
+        .json({
+          message: "Invalid status. Must be online, offline, or onTrip.",
+        });
+    }
+
+    const driver = await DriverModel.findByIdAndUpdate(
+      req.driver._id,
+      { currentStatus: status },
+      { new: true }
+    );
+
+    res.json({
+      message: "Status updated successfully.",
+      driver: driver,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export {
+  registerDriver,
+  loginDriver,
+  getDriverProfile,
+  logoutDriver,
+  updateDriverStatus,
+};

@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema(
     },
     socketID: {
       type: String,
-      unique: true,
+      index: { unique: true, sparse: true }, // <--- Safer way
     },
   },
   { timestamps: true }

@@ -9,19 +9,21 @@ import cookieParser from "cookie-parser";
 dotenv.config();
 const app = express();
 
-//middlewares
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 app.use(cookieParser());
 
-//connect to database
 connectDB();
 
-//routes
 app.use("/api/users", userRouter);
 app.use("/api/drivers", driverRouter);
 
-//start the server
 app.listen(3000, () => {
   console.log("Server is running on port 3000");
 });

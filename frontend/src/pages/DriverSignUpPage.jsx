@@ -1,33 +1,97 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const DriverSignUpPage = () => {
+  const navigate = useNavigate();
   const [driverSignupCredentials, setDriverSignupCredentials] = useState({
-    fullName: "",
+    username: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    vehicle: {
+      capacity: "",
+      vehicleType: "",
+      vehicleNumber: "",
+    },
   });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleOnChange = (event) => {
-    setDriverSignupCredentials({
-      ...driverSignupCredentials,
-      [event.target.name]: event.target.value,
-    });
+    const { name, value } = event.target;
+
+    if (name.startsWith("vehicle.")) {
+      const vehicleField = name.split(".")[1];
+      setDriverSignupCredentials({
+        ...driverSignupCredentials,
+        vehicle: {
+          ...driverSignupCredentials.vehicle,
+          [vehicleField]: value,
+        },
+      });
+    } else {
+      setDriverSignupCredentials({
+        ...driverSignupCredentials,
+        [name]: value,
+      });
+    }
   };
 
-  const handleOnSubmit = (event) => {
+  const handleOnSubmit = async (event) => {
     event.preventDefault();
-    console.log(driverSignupCredentials);
-    setDriverSignupCredentials({
-      fullName: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    });
+    setError("");
+    setLoading(true);
+
+    if (driverSignupCredentials.password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      setLoading(false);
+      return;
+    }
+
+    if (
+      !driverSignupCredentials.vehicle.vehicleType ||
+      !driverSignupCredentials.vehicle.vehicleNumber ||
+      !driverSignupCredentials.vehicle.capacity
+    ) {
+      setError("Please fill in all vehicle details");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/drivers/register",
+        {
+          username: driverSignupCredentials.username,
+          email: driverSignupCredentials.email,
+          password: driverSignupCredentials.password,
+          vehicle: driverSignupCredentials.vehicle,
+        }
+      );
+
+      if (response.status === 201) {
+        setDriverSignupCredentials({
+          username: "",
+          email: "",
+          password: "",
+          vehicle: {
+            capacity: "",
+            vehicleType: "",
+            vehicleNumber: "",
+          },
+        });
+        navigate("/driver/login");
+      }
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Registration failed. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
+
   return (
     <div className="p-7 min-h-screen relative bg-white">
       <div className="mb-10">
@@ -35,19 +99,27 @@ const DriverSignUpPage = () => {
           Drivio <span className="text-blue-500">captain</span>
         </h1>
       </div>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
+
       <form onSubmit={handleOnSubmit}>
-        <label htmlFor="text" className="text-xs mb-2 block">
+        <label htmlFor="username" className="text-xs mb-2 block">
           What's captain Fullname
         </label>
         <input
           type="text"
-          name="text"
-          id="text"
+          name="username"
+          id="username"
           placeholder="john Doe"
-          value={driverSignupCredentials.fullName}
+          value={driverSignupCredentials.username}
           onChange={handleOnChange}
           className="bg-[#eeeeee] mb-7 w-full py-2 px-4 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
+
         <label htmlFor="email" className="text-xs mb-2 block">
           What's captain Email
         </label>
@@ -73,20 +145,52 @@ const DriverSignUpPage = () => {
           onChange={handleOnChange}
           className="bg-[#eeeeee] mb-7 w-full py-2 px-4 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
-        <label htmlFor="confirmpassword" className="text-xs mb-2 block">
-          Confirm Password
+
+        <label htmlFor="vehicleType" className="text-xs mb-2 block">
+          Vehicle Type
+        </label>
+        <select
+          name="vehicle.vehicleType"
+          id="vehicleType"
+          value={driverSignupCredentials.vehicle.vehicleType}
+          onChange={handleOnChange}
+          className="bg-[#eeeeee] mb-7 w-full py-2 px-4 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          <option value="">Select vehicle type</option>
+          <option value="car">Car</option>
+          <option value="bike">Bike</option>
+          <option value="auto">Auto</option>
+        </select>
+
+        <label htmlFor="vehicleNumber" className="text-xs mb-2 block">
+          Vehicle Number
         </label>
         <input
-          type="password"
-          name="confirmpassword"
-          id="confirmpassword"
-          placeholder="confirm password"
-          value={driverSignupCredentials.confirmPassword}
+          type="text"
+          name="vehicle.vehicleNumber"
+          id="vehicleNumber"
+          placeholder="Enter vehicle number"
+          value={driverSignupCredentials.vehicle.vehicleNumber}
           onChange={handleOnChange}
           className="bg-[#eeeeee] mb-7 w-full py-2 px-4 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
 
-        <Button className="w-full">Login</Button>
+        <label htmlFor="capacity" className="text-xs mb-2 block">
+          Vehicle Capacity
+        </label>
+        <input
+          type="number"
+          name="vehicle.capacity"
+          id="capacity"
+          placeholder="Enter passenger capacity"
+          value={driverSignupCredentials.vehicle.capacity}
+          onChange={handleOnChange}
+          className="bg-[#eeeeee] mb-7 w-full py-2 px-4 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Registering..." : "Create Captain"}
+        </Button>
       </form>
 
       <div>

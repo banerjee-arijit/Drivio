@@ -1,12 +1,16 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import axios from "axios";
 const DriverLoginPage = () => {
+  const navigate = useNavigate();
   const [driverLoginCredentials, setDriverLoginCredentials] = useState({
     email: "",
     password: "",
   });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleOnChange = (event) => {
     setDriverLoginCredentials({
@@ -17,11 +21,30 @@ const DriverLoginPage = () => {
 
   const handleOnSubmit = async (event) => {
     event.preventDefault();
-    console.log(driverLoginCredentials);
-    setDriverLoginCredentials({
-      email: "",
-      password: "",
-    });
+    setError("");
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/drivers/login",
+        driverLoginCredentials,
+        { withCredentials: true }
+      );
+      if (response.status === 200) {
+        console.log("Login successful", response.data);
+        setDriverLoginCredentials({
+          email: "",
+          password: "",
+        });
+        navigate("/driver/dashboard");
+      }
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "Login failed. Please check your credentials."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

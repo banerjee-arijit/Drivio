@@ -3,7 +3,11 @@ import Homepage from "./../pages/Homepage";
 import UserLoginpage from "./../pages/UserLoginpage";
 import UserSignUppage from "./../pages/UserSignUppage";
 import DriverLoginPage from "./../pages/DriverLoginPage";
-import DriverSignUpPage from "@/pages/DriverSignUpPage";
+import DriverSignUpPage from "./../pages/DriverSignUpPage";
+import Dashboard from "../pages/UserDashboard";
+import DriverDashboard from "../pages/DriverDashboard";
+import UserprotectedRoute from "./../pages/UserprotectedRoute";
+import DriverProtectedRoute from "./../pages/DriverProtectedRoute";
 
 const router = createBrowserRouter([
   {
@@ -29,6 +33,24 @@ const router = createBrowserRouter([
   {
     path: "/driver/signup",
     element: <DriverSignUpPage />,
+    exact: true,
+  },
+  {
+    path: "/dashboard",
+    element: (
+      <UserprotectedRoute>
+        <Dashboard />
+      </UserprotectedRoute>
+    ),
+    exact: true,
+  },
+  {
+    path: "/driver/dashboard",
+    element: (
+      <DriverProtectedRoute>
+        <DriverDashboard />
+      </DriverProtectedRoute>
+    ),
     exact: true,
   },
   {

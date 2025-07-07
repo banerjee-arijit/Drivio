@@ -6,6 +6,7 @@ import {
   loginDriver,
   getDriverProfile,
   logoutDriver,
+  updateDriverStatus,
 } from "../controllers/driver.controller.js";
 import authMiddleware from "./../middlewares/auth.middleware.js";
 
@@ -42,6 +43,8 @@ driverRouter.post(
 );
 
 driverRouter.get("/profile", authMiddleware, getDriverProfile);
+
+driverRouter.patch("/status", authMiddleware, updateDriverStatus);
 
 driverRouter.get("/logout", authMiddleware, logoutDriver);
 
