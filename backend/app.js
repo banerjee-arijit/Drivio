@@ -5,6 +5,8 @@ import connectDB from "./config/db.js";
 import userRouter from "./routes/user.route.js";
 import driverRouter from "./routes/driver.route.js";
 import cookieParser from "cookie-parser";
+import maprouter from "./routes/maps.route.js";
+import rideRouter from "./routes/ride.route.js";
 
 dotenv.config();
 const app = express();
@@ -23,6 +25,8 @@ connectDB();
 
 app.use("/api/users", userRouter);
 app.use("/api/drivers", driverRouter);
+app.use("/api/maps", maprouter);
+app.use("/api/rides", rideRouter);
 
 app.listen(3000, () => {
   console.log("Server is running on port 3000");
