@@ -21,6 +21,9 @@ import RidingPage from "@/pages/userdarboardComponents/RidingPage";
 
 // 🔸 Driver Dashboard
 import CaptainDashboard from "@/pages/captaindashboardcomponents/CaptainDashboard";
+import CaptainPickup from "@/pages/captaindashboardcomponents/CaptainPickup";
+import CaptainRiding from "@/pages/captaindashboardcomponents/captainriding";
+import CaptainPayment from "@/pages/captaindashboardcomponents/CaptainPayment";
 
 // 🔹 Router Configuration
 const router = createBrowserRouter([
@@ -84,6 +87,18 @@ const router = createBrowserRouter([
         <CaptainDashboard />
       </DriverProtectedRoute>
     ),
+  },
+  {
+    path: "/captain-pickup",
+    element: <CaptainPickup />,
+  },
+  {
+    path: "/captain-riding",
+    element: <CaptainRiding />,
+  },
+  {
+    path: "/captain-payment",
+    element: <CaptainPayment />,
   },
 
   // ❌ 404 - Page Not Found
