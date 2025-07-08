@@ -89,7 +89,7 @@ const CaptainDashboard = () => {
       console.log("New ride received:", ride);
       setRideRequest(ride);
       setShowNotification(true);
-      setTimeout(() => setShowNotification(false), 5000);
+      setTimeout(() => setShowNotification(false), 20000);
     });
   }, [onMessage]);
 
@@ -149,7 +149,6 @@ const CaptainDashboard = () => {
   const handleDeclineRide = () => {
     setShowNotification(false);
     if (rideRequest) {
-      // No socket.io emit for now, just navigate
       navigate("/captain-pickup");
     }
     setRideRequest(null);
@@ -275,10 +274,7 @@ const CaptainDashboard = () => {
       {/* Ride Notification Popup */}
       {showNotification && rideRequest && (
         <RideNotification
-          pickup={rideRequest.pickup}
-          destination={rideRequest.destination}
-          fare={rideRequest.fare}
-          vehicleType={rideRequest.vehicleType}
+          rideDetails={rideRequest}
           onAccept={handleAcceptRide}
           onDecline={handleDeclineRide}
         />

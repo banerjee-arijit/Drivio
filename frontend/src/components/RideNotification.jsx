@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Clock, DollarSign } from "lucide-react";
 
-const RideNotification = ({ onAccept, onDecline }) => {
-  const [countdown, setCountdown] = useState(15);
+const RideNotification = ({ rideDetails, onAccept, onDecline }) => {
+  const [countdown, setCountdown] = useState(20); // Match the 20s timeout from CaptainDashboard
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -20,6 +20,19 @@ const RideNotification = ({ onAccept, onDecline }) => {
     return () => clearInterval(timer);
   }, [onDecline]);
 
+  // Format duration (assuming duration is in minutes)
+  const formatDuration = (minutes) => {
+    if (!minutes) return "N/A";
+    const hours = Math.floor(minutes / 60);
+    const mins = Math.round(minutes % 60);
+    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+  };
+
+  // Format distance (assuming distance is in kilometers)
+  const formatDistance = (km) => {
+    return km ? `${km.toFixed(2)} km` : "N/A";
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <Card className="w-full max-w-sm bg-white">
@@ -34,29 +47,38 @@ const RideNotification = ({ onAccept, onDecline }) => {
 
           <div className="space-y-3 mb-6">
             <div className="flex items-center gap-3">
+              {/* Pickup */}
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               <div className="flex-1">
-                <p className="font-medium">123 Main Street</p>
+                <p className="font-medium">
+                  {rideDetails?.pickupLocation || "N/A"}
+                </p>
                 <p className="text-sm text-gray-600">Pickup location</p>
               </div>
             </div>
-
             <div className="flex items-center gap-3">
+              {/* Destination */}
               <div className="w-3 h-3 bg-red-500 rounded-full"></div>
               <div className="flex-1">
-                <p className="font-medium">456 Oak Avenue</p>
+                <p className="font-medium">
+                  {rideDetails?.destination || "N/A"}
+                </p>
                 <p className="text-sm text-gray-600">Destination</p>
               </div>
             </div>
-
             <div className="flex justify-between items-center pt-2 border-t">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-gray-500" />
-                <span className="text-sm text-gray-600">8 min away</span>
+                <span className="text-sm text-gray-600">
+                  {formatDistance(rideDetails?.distance)} •{" "}
+                  {formatDuration(rideDetails?.duration)}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-gray-500" />
-                <span className="font-semibold">$12.50</span>
+                <span className="font-semibold">
+                  ₹{rideDetails?.fare ?? "N/A"}
+                </span>
               </div>
             </div>
           </div>
