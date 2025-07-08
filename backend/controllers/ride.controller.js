@@ -7,6 +7,8 @@ import {
 } from "../services/maps.service.js";
 import DriverModel from "../models/driver.model.js";
 import { sendMessageToSocketId } from "../socket.js";
+import UserModel from "../models/user.model.js";
+import RideModel from "../models/ride.model.js";
 
 const handleCreateRide = async (req, res) => {
   try {
@@ -77,4 +79,47 @@ const getfare = async (req, res) => {
   }
 };
 
-export { handleCreateRide, getfare };
+const acceptRide = async (req, res) => {
+  try {
+    const { rideId } = req.body;
+    const driverId = req.driver._id; // <-- FIXED HERE
+
+    // Update ride with driverId
+    const ride = await RideModel.findByIdAndUpdate(
+      rideId,
+      { driver: driverId, status: "confirmed" },
+      { new: true }
+    )
+      .populate("user")
+      .populate("driver");
+
+    if (!ride) {
+      return res.status(404).json({ message: "Ride not found" });
+    }
+
+    // Get user socketID
+    const user = await UserModel.findById(ride.user);
+    if (user && user.socketID) {
+      const driverInfo = {
+        name: ride.driver.username,
+        vehicle: ride.driver.vehicle?.vehicleType || "N/A",
+        plate: ride.driver.vehicle?.vehicleNumber || "N/A",
+        driverId: ride.driver._id,
+      };
+      sendMessageToSocketId(user.socketID, {
+        event: "ride-confirmed",
+        data: {
+          rideId: ride._id,
+          driver: driverInfo,
+        },
+      });
+    }
+
+    res.json({ message: "Ride accepted", ride });
+  } catch (error) {
+    console.error("Error in acceptRide:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export { handleCreateRide, getfare, acceptRide };

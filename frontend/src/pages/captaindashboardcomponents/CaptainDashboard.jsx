@@ -7,6 +7,7 @@ import { User, MapPin, Clock, Star } from "lucide-react";
 import RideNotification from "@/components/RideNotification";
 import axios from "axios";
 import { useSocketStore } from "../../store/socketStore";
+import ConfirmRide from "./../userdarboardComponents/ConfirmRide";
 
 function getCookie(name) {
   const value = `; ${document.cookie}`;
@@ -138,8 +139,17 @@ const CaptainDashboard = () => {
   };
 
   // Accept/Decline ride handlers
-  const handleAcceptRide = () => {
+  const handleAcceptRide = async () => {
     setShowNotification(false);
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/rides/accept",
+        { rideId: rideRequest._id },
+        { withCredentials: true }
+      );
+    } catch (error) {
+      console.error("�� Failed to accept ride", error);
+    }
     if (rideRequest) {
       navigate("/captain-pickup");
     }
@@ -148,10 +158,13 @@ const CaptainDashboard = () => {
 
   const handleDeclineRide = () => {
     setShowNotification(false);
-    if (rideRequest) {
-      navigate("/captain-pickup");
-    }
+
     setRideRequest(null);
+  };
+
+  const handleLogout = () => {
+    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    navigate("/login");
   };
 
   return (
@@ -171,6 +184,19 @@ const CaptainDashboard = () => {
             <span className="text-sm">{isOnline ? "Online" : "Offline"}</span>
             <Switch checked={isOnline} onCheckedChange={handleStatusToggle} />
           </div>
+          <button
+            onClick={handleLogout}
+            style={{
+              background: "#f00",
+              color: "#fff",
+              padding: "8px 16px",
+              borderRadius: 4,
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Logout
+          </button>
         </div>
       </header>
 

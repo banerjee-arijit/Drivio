@@ -60,6 +60,11 @@ const UserDashboard = () => {
     { name: "Airport", icon: MapPin, address: "Airport Terminal" },
   ];
 
+  const handleLogout = () => {
+    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    navigate("/login");
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -118,6 +123,22 @@ const UserDashboard = () => {
             ))}
           </div>
         </div>
+        <button
+          onClick={handleLogout}
+          style={{
+            position: "absolute",
+            top: 16,
+            right: 16,
+            background: "#f00",
+            color: "#fff",
+            padding: "8px 16px",
+            borderRadius: 4,
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          Logout
+        </button>
       </div>
     </div>
   );

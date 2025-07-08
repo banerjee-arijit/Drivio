@@ -1,6 +1,10 @@
 import express from "express";
 import { body, query } from "express-validator";
-import { handleCreateRide, getfare } from "../controllers/ride.controller.js";
+import {
+  handleCreateRide,
+  getfare,
+  acceptRide,
+} from "../controllers/ride.controller.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
 
 const rideRouter = express.Router();
@@ -40,4 +44,5 @@ rideRouter.get(
   authMiddleware,
   getfare
 );
+rideRouter.post("/accept", authMiddleware, acceptRide);
 export default rideRouter;
