@@ -5,7 +5,6 @@ const rideSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     },
     driver: {
       type: mongoose.Schema.Types.ObjectId,
@@ -44,6 +43,11 @@ const rideSchema = new mongoose.Schema(
     },
     signature: {
       type: String,
+    },
+    otp: {
+      type: String,
+      selected: false,
+      required: true,
     },
   },
   { timestamps: true }

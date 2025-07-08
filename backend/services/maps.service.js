@@ -1,5 +1,5 @@
 import axios from "axios";
-
+import DriverModel from "./../models/driver.model.js";
 const getAddressCoordinates = async (address) => {
   if (!address) throw new Error("Address is required");
 
@@ -33,6 +33,10 @@ const getDistance = async (origin, destination) => {
 
   try {
     const response = await axios.get(url);
+    if (!response.data.features || !response.data.features[0]) {
+      console.error("Geoapify response:", response.data);
+      throw new Error("No route found between the given points.");
+    }
     const route = response.data.features[0].properties;
 
     return {
@@ -70,4 +74,27 @@ const getAutocompleteSuggestions = async (query) => {
   }
 };
 
-export { getAddressCoordinates, getDistance, getAutocompleteSuggestions };
+const getCaptainsInTheRadius = async (lat, lng, radius) => {
+  if (!lat || !lng || !radius)
+    throw new Error("Location and radius are required");
+  const captains = await DriverModel.find({
+    location: {
+      $geoWithin: {
+        $centerSphere: [[lng, lat], radius / 6371],
+      },
+    },
+  });
+  if (captains.length > 0) {
+    console.log("Nearest driver:", captains[0]);
+  } else {
+    console.log("No drivers found in radius");
+  }
+  return captains;
+};
+
+export {
+  getAddressCoordinates,
+  getDistance,
+  getAutocompleteSuggestions,
+  getCaptainsInTheRadius,
+};

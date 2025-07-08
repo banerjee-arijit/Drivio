@@ -1,34 +1,158 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { User, MapPin, Clock, Star } from "lucide-react";
 import RideNotification from "@/components/RideNotification";
+import axios from "axios";
+import { useSocketStore } from "../../store/socketStore";
+
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+}
+
+function getUserIdFromToken() {
+  const token = getCookie("token");
+  if (!token) return null;
+  try {
+    const payload = token.split(".")[1];
+    const decoded = JSON.parse(atob(payload));
+    return decoded.id;
+  } catch (e) {
+    return null;
+  }
+}
 
 const CaptainDashboard = () => {
   const navigate = useNavigate();
   const [isOnline, setIsOnline] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [earnings, setEarnings] = useState(125.5);
+  const [captainName, setCaptainName] = useState("Captain");
+  const [loading, setLoading] = useState(true);
+  const [statusError, setStatusError] = useState("");
+  const [rideRequest, setRideRequest] = useState(null);
+  const { sendMessage, onMessage } = useSocketStore();
 
   useEffect(() => {
-    // Simulate incoming ride request when online
-    if (isOnline) {
-      const timer = setTimeout(() => {
-        setShowNotification(true);
-      }, 3000);
-      return () => clearTimeout(timer);
+    // Socket join logic using cookie token
+    const userId = getUserIdFromToken();
+    if (userId) {
+      sendMessage("join", { userId, userType: "driver" });
     }
-  }, [isOnline]);
+    // Listen for messages
+    onMessage("message", (msg) => {
+      console.log("Received message:", msg);
+    });
+  }, []);
 
+  // Send captain's location to server every 10 seconds via socket.io
+  useEffect(() => {
+    let intervalId = null;
+
+    // Helper to get current position
+    const sendLocation = () => {
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const userId = getUserIdFromToken();
+          if (userId) {
+            const locationData = {
+              userId,
+              location: { lat: latitude, lng: longitude },
+            };
+            // console.log("Emitting updateLocationCaptain:", locationData);
+            sendMessage("updateLocationCaptain", locationData);
+          }
+        },
+        (err) => {
+          // Optionally handle error
+        }
+      );
+    };
+
+    intervalId = setInterval(sendLocation, 10000);
+    sendLocation();
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, []);
+
+  useEffect(() => {
+    onMessage("new-ride", (msg) => {
+      // msg may be { event: 'new-ride', data: ride }
+      const ride = msg?.data || msg;
+      console.log("New ride received:", ride);
+      setRideRequest(ride);
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+    });
+  }, [onMessage]);
+
+  // Fetch captain profile on mount
+  useEffect(() => {
+    const fetchCaptainProfile = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/api/drivers/profile",
+          {
+            withCredentials: true,
+          }
+        );
+
+        if (response.data && response.data.driver) {
+          setCaptainName(response.data.driver.username || "Captain");
+        }
+      } catch (error) {
+        console.error("❌ Failed to fetch captain profile", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCaptainProfile();
+  }, []);
+
+  // Handle online/offline toggle
+  const handleStatusToggle = async (checked) => {
+    setStatusError("");
+    try {
+      const response = await axios.patch(
+        "http://localhost:3000/api/drivers/status",
+        { status: checked ? "online" : "offline" },
+        { withCredentials: true }
+      );
+      if (response.data && response.data.driver) {
+        setIsOnline(response.data.driver.currentStatus === "online");
+      }
+    } catch (error) {
+      setStatusError(
+        error.response?.data?.message || "Failed to update status."
+      );
+    }
+  };
+
+  // Accept/Decline ride handlers
   const handleAcceptRide = () => {
     setShowNotification(false);
-    navigate("/captain-pickup");
+    if (rideRequest) {
+      navigate("/captain-pickup");
+    }
+    setRideRequest(null);
   };
 
   const handleDeclineRide = () => {
     setShowNotification(false);
+    if (rideRequest) {
+      // No socket.io emit for now, just navigate
+      navigate("/captain-pickup");
+    }
+    setRideRequest(null);
   };
 
   return (
@@ -39,17 +163,19 @@ const CaptainDashboard = () => {
           <div className="flex items-center gap-3">
             <User className="w-8 h-8 bg-gray-800 p-1 rounded-full" />
             <div>
-              <h1 className="text-lg font-semibold">Captain John</h1>
-              <p className="text-sm text-gray-300">Toyota Camry • ABC 123</p>
+              <h1 className="text-lg font-semibold">
+                {loading ? "Loading..." : `Captain ${captainName}`}
+              </h1>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm">{isOnline ? "Online" : "Offline"}</span>
-            <Switch checked={isOnline} onCheckedChange={setIsOnline} />
+            <Switch checked={isOnline} onCheckedChange={handleStatusToggle} />
           </div>
         </div>
       </header>
 
+      {/* Dashboard Content */}
       <div className="max-w-md mx-auto p-4 space-y-4">
         {/* Status Card */}
         <Card>
@@ -113,7 +239,7 @@ const CaptainDashboard = () => {
           </Card>
         </div>
 
-        {/* Recent Activity */}
+        {/* Recent Rides */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -147,11 +273,21 @@ const CaptainDashboard = () => {
       </div>
 
       {/* Ride Notification Popup */}
-      {showNotification && (
+      {showNotification && rideRequest && (
         <RideNotification
+          pickup={rideRequest.pickup}
+          destination={rideRequest.destination}
+          fare={rideRequest.fare}
+          vehicleType={rideRequest.vehicleType}
           onAccept={handleAcceptRide}
           onDecline={handleDeclineRide}
         />
+      )}
+      {/* Show error if status update fails */}
+      {statusError && (
+        <div className="max-w-md mx-auto p-2 mt-2 bg-red-100 text-red-700 border border-red-400 rounded">
+          {statusError}
+        </div>
       )}
     </div>
   );

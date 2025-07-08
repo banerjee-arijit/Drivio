@@ -1,6 +1,6 @@
 import express from "express";
-import { body } from "express-validator";
-import { handleCreateRide } from "../controllers/ride.controller.js";
+import { body, query } from "express-validator";
+import { handleCreateRide, getfare } from "../controllers/ride.controller.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
 
 const rideRouter = express.Router();
@@ -25,5 +25,19 @@ rideRouter.post(
     .withMessage("Invalid vehicle type"),
   authMiddleware,
   handleCreateRide
+);
+rideRouter.get(
+  "/get-fare",
+  query("pickup").isString().isLength({ min: 3 }).withMessage("Invalid pickup"),
+  query("destination")
+    .isString()
+    .isLength({ min: 3 })
+    .withMessage("Invalid destination"),
+  query("vehicleType")
+    .isString()
+    .isIn(["car", "bike", "auto", "largecar"])
+    .withMessage("Invalid vehicle type"),
+  authMiddleware,
+  getfare
 );
 export default rideRouter;

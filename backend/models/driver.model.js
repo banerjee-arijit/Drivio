@@ -1,8 +1,7 @@
-import { mongoose } from "mongoose";
+import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-//defining the driver schema with necessary fields
 const driverschema = new mongoose.Schema(
   {
     username: {
@@ -23,12 +22,12 @@ const driverschema = new mongoose.Schema(
     },
     socketID: {
       type: String,
-      unique: true,
     },
     currentStatus: {
       type: String,
       enum: ["online", "offline", "onTrip"],
       default: "offline",
+      index: true,
     },
     vehicle: {
       capacity: {
@@ -45,13 +44,23 @@ const driverschema = new mongoose.Schema(
         required: true,
       },
     },
-
     currentLocation: {
-      latitude: {
+      lat: {
         type: Number,
       },
-      longitude: {
+      lng: {
         type: Number,
+      },
+    },
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number], // [lng, lat]
+        default: [0, 0],
       },
     },
     currentTrip: {},
@@ -59,28 +68,27 @@ const driverschema = new mongoose.Schema(
   { timestamps: true }
 );
 
-//generating a JWT token for user authentication
+// JWT token generation
 driverschema.methods.generateAuthToken = function () {
-  const token = jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
     expiresIn: "7d",
   });
-  return token;
 };
 
-//checking the password against the hashed password stored in the database
+// Compare hashed password
 driverschema.methods.comparePassword = async function (candidatePassword) {
-  const isMatch = await bcrypt.compare(candidatePassword, this.password);
-  return isMatch;
+  return await bcrypt.compare(candidatePassword, this.password);
 };
 
-//hashing the password before saving it to the database
+// Hash password before saving
 driverschema.pre("save", async function (next) {
   if (this.isModified("password")) {
-    const hashedPassword = await bcrypt.hash(this.password, 10);
-    this.password = hashedPassword;
+    this.password = await bcrypt.hash(this.password, 10);
   }
   next();
 });
+
+driverschema.index({ location: "2dsphere" });
 
 const DriverModel = mongoose.model("Driver", driverschema);
 

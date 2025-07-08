@@ -34,11 +34,17 @@ const UserLoginpage = () => {
       );
 
       if (response.status === 200) {
-        console.log("Login successful", response.data);
         setUserLoginCredentials({
           email: "",
           password: "",
         });
+        if (
+          response.data &&
+          response.data.user &&
+          response.data.user.username
+        ) {
+          localStorage.setItem("username", response.data.user.username);
+        }
         navigate("/dashboard");
       }
     } catch (err) {

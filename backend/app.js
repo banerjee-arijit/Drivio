@@ -7,6 +7,8 @@ import driverRouter from "./routes/driver.route.js";
 import cookieParser from "cookie-parser";
 import maprouter from "./routes/maps.route.js";
 import rideRouter from "./routes/ride.route.js";
+import jwt from "jsonwebtoken";
+import initializeSocket from "./socket.js";
 
 dotenv.config();
 const app = express();
@@ -28,6 +30,8 @@ app.use("/api/drivers", driverRouter);
 app.use("/api/maps", maprouter);
 app.use("/api/rides", rideRouter);
 
-app.listen(3000, () => {
-  console.log("Server is running on port 3000");
+const server = app.listen(3000, () => {
+  console.log("Server is running on port 3000 (with Socket.IO)");
 });
+
+initializeSocket(server);

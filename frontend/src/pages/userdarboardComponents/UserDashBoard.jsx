@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Car,
@@ -11,9 +11,48 @@ import {
   Home,
   Building2,
 } from "lucide-react";
+import { useSocketStore } from "../../store/socketStore";
+
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+}
+
+function getUserIdFromToken() {
+  const token = getCookie("token");
+  if (!token) return null;
+  try {
+    const payload = token.split(".")[1];
+    const decoded = JSON.parse(atob(payload));
+    return decoded.id;
+  } catch (e) {
+    return null;
+  }
+}
 
 const UserDashboard = () => {
   const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const { sendMessage, onMessage } = useSocketStore();
+
+  useEffect(() => {
+    const storedUsername = localStorage.getItem("username");
+    if (storedUsername) {
+      setUsername(storedUsername);
+    }
+    // Socket join logic using cookie token
+    const userId = getUserIdFromToken();
+    if (userId) {
+      sendMessage("join", { userId, userType: "user" });
+    }
+    // Listen for messages
+    onMessage("message", (msg) => {
+      console.log("Received message:", msg);
+    });
+    // Optionally, cleanup listener on unmount
+    // return () => socket.off("message");
+  }, []);
 
   const quickDestinations = [
     { name: "Home", icon: Home, address: "123 Main St" },
@@ -35,10 +74,9 @@ const UserDashboard = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-black mb-2">
-            Good afternoon, John
+            Good afternoon{username ? `, ${username}` : ""}
           </h1>
           <p className="text-gray-600">Where would you like to go today?</p>
         </div>

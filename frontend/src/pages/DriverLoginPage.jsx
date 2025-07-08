@@ -35,6 +35,17 @@ const DriverLoginPage = () => {
           email: "",
           password: "",
         });
+        // Store captain's username in localStorage
+        if (
+          response.data &&
+          response.data.driver &&
+          response.data.driver.username
+        ) {
+          localStorage.setItem(
+            "captainusername",
+            response.data.driver.username
+          );
+        }
         navigate("/driver/dashboard");
       }
     } catch (err) {

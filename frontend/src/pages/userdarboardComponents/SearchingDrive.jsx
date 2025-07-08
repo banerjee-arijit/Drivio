@@ -1,19 +1,68 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, Clock } from "lucide-react";
+import { useTripStore } from "@/store/tripStore";
+import axios from "axios";
 
 const SearchingDrive = () => {
   const navigate = useNavigate();
   const [searchTime, setSearchTime] = useState(0);
   const [foundDriver, setFoundDriver] = useState(false);
+  // Remove local rideDetails state
+  // const [rideDetails, setRideDetails] = useState(null);
+
+  const pickup = useTripStore((state) => state.pickup);
+  const destination = useTripStore((state) => state.destination);
+  const selectedVehicle = useTripStore((state) => state.selectedVehicle);
+  const rideDetails = useTripStore((state) => state.rideDetails);
+  const setRideDetails = useTripStore((state) => state.setRideDetails);
+
+  useEffect(() => {
+    if (!pickup || !destination || !selectedVehicle) {
+      console.warn("Missing trip data, redirecting...");
+      navigate("/select-drive");
+    }
+  }, [pickup, destination, selectedVehicle, navigate]);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setSearchTime((prev) => prev + 1);
     }, 1000);
 
-    const driverTimer = setTimeout(() => {
+    const driverTimer = setTimeout(async () => {
       setFoundDriver(true);
+
+      try {
+        // 1. Get user ID from /profile using cookie-based JWT
+        const userRes = await axios.get(
+          "http://localhost:3000/api/users/profile",
+          { withCredentials: true }
+        );
+        const userId = userRes.data.user?._id;
+        if (!userId) throw new Error("User not found");
+
+        // 3. Create ride
+        const res = await axios.post(
+          "http://localhost:3000/api/rides/create",
+          {
+            userId,
+            pickupLocation: pickup,
+            destination: destination,
+            vehicleType: selectedVehicle,
+          },
+          { withCredentials: true }
+        );
+        setRideDetails(res.data);
+        console.log("Ride response:", res.data);
+      } catch (err) {
+        console.error(
+          "Ride creation failed:",
+          err.response?.data || err.message
+        );
+        setRideDetails({ error: "Failed to create ride" });
+      }
+
+      // 4. Navigate to confirm page after short delay
       setTimeout(() => {
         navigate("/confirm");
       }, 2000);
@@ -23,7 +72,7 @@ const SearchingDrive = () => {
       clearInterval(timer);
       clearTimeout(driverTimer);
     };
-  }, [navigate]);
+  }, [navigate, pickup, destination, selectedVehicle, setRideDetails]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -58,7 +107,10 @@ const SearchingDrive = () => {
         <div className="text-center mb-8">
           <div className="relative mx-auto mb-6">
             <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-              <img src="https://www.pngplay.com/wp-content/uploads/8/Uber-PNG-Photos.png" />
+              <img
+                src="https://www.pngplay.com/wp-content/uploads/8/Uber-PNG-Photos.png"
+                alt="logo"
+              />
             </div>
 
             {/* Animated rings */}
@@ -100,17 +152,19 @@ const SearchingDrive = () => {
           <div className="space-y-3">
             <div className="flex items-center space-x-4">
               <div className="bg-black rounded-full w-3 h-3"></div>
-              <span className="text-gray-600">Downtown Plaza</span>
+              <span className="text-gray-600">{pickup}</span>
             </div>
             <div className="flex items-center space-x-4">
               <div className="bg-gray-400 rounded-full w-3 h-3"></div>
-              <span className="text-gray-600">Airport Terminal</span>
+              <span className="text-gray-600">{destination}</span>
             </div>
           </div>
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">RideShare</span>
-              <span className="font-semibold text-black">$12.50</span>
+              <span className="text-gray-600">
+                {selectedVehicle ? selectedVehicle : "-"}
+              </span>
+              <span className="font-semibold text-black">₹12.50</span>
             </div>
           </div>
         </div>
@@ -131,6 +185,25 @@ const SearchingDrive = () => {
               <p className="text-green-700">
                 Connecting you with your driver...
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* Ride Details */}
+        {foundDriver && rideDetails && (
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-6">
+            <div className="text-center">
+              <h3 className="font-semibold text-blue-800 mb-2">Ride Details</h3>
+              {rideDetails.error ? (
+                <p className="text-red-600">{rideDetails.error}</p>
+              ) : (
+                <>
+                  <p>Pickup: {rideDetails.pickupLocation}</p>
+                  <p>Destination: {rideDetails.destination}</p>
+                  <p>Vehicle: {rideDetails.vehicleType}</p>
+                  <p>Fare: ₹{rideDetails.fare}</p>
+                </>
+              )}
             </div>
           </div>
         )}

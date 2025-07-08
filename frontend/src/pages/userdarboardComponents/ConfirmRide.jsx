@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -9,11 +9,15 @@ import {
   Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import axios from "axios";
+import { useTripStore } from "@/store/tripStore";
 
 const ConfirmRide = () => {
   const navigate = useNavigate();
   const [selectedPayment, setSelectedPayment] = useState("card");
+  const rideDetails = useTripStore((state) => state.rideDetails);
 
+  // Remove handleConfirmRide ride creation logic, keep only navigation if needed
   const handleConfirmRide = () => {
     navigate("/riding");
   };
@@ -73,18 +77,6 @@ const ConfirmRide = () => {
                 </div>
               </div>
             </div>
-
-            {/* Contact Buttons */}
-            <div className="flex gap-2">
-              <button className="flex-1 border border-gray-300 rounded-lg py-2 px-4 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors">
-                <Phone className="w-4 h-4" />
-                <span className="text-sm">Call</span>
-              </button>
-              <button className="flex-1 border border-gray-300 rounded-lg py-2 px-4 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors">
-                <MessageCircle className="w-4 h-4" />
-                <span className="text-sm">Message</span>
-              </button>
-            </div>
           </div>
         </div>
 
@@ -95,16 +87,20 @@ const ConfirmRide = () => {
               <div className="flex items-start gap-3">
                 <div className="w-3 h-3 bg-green-500 rounded-full mt-1"></div>
                 <div>
-                  <p className="text-sm font-medium">Downtown Plaza</p>
-                  <p className="text-xs text-gray-600">123 Main Street</p>
+                  <p className="text-sm font-medium">
+                    {rideDetails?.pickupLocation || "-"}
+                  </p>
+                  {/* Optionally render address if available */}
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
                 <div className="w-3 h-3 bg-red-500 rounded-full mt-1"></div>
                 <div>
-                  <p className="text-sm font-medium">Airport Terminal</p>
-                  <p className="text-xs text-gray-600">456 Airport Road</p>
+                  <p className="text-sm font-medium">
+                    {rideDetails?.destination || "-"}
+                  </p>
+                  {/* Optionally render address if available */}
                 </div>
               </div>
             </div>
@@ -120,36 +116,6 @@ const ConfirmRide = () => {
           </div>
         </div>
 
-        {/* Payment Method */}
-        <div className="border border-gray-200 rounded-lg">
-          <div className="p-4 pb-3">
-            <h3 className="text-lg font-semibold">Payment method</h3>
-          </div>
-          <div className="px-4 pb-4">
-            <div className="space-y-2">
-              {paymentMethods.map((method) => (
-                <button
-                  key={method.id}
-                  onClick={() => setSelectedPayment(method.id)}
-                  className={`w-full p-3 rounded-lg border-2 transition-colors ${
-                    selectedPayment === method.id
-                      ? "border-black bg-gray-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <method.icon className="w-5 h-5 text-gray-600" />
-                    <div className="text-left">
-                      <p className="font-medium text-sm">{method.name}</p>
-                      <p className="text-xs text-gray-600">{method.details}</p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
         {/* Price Breakdown */}
         <div className="border border-gray-200 rounded-lg">
           <div className="p-4 pb-3">
@@ -159,7 +125,7 @@ const ConfirmRide = () => {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-600">Trip fare</span>
-                <span>₹120.30</span>
+                <span>{rideDetails ? `₹${rideDetails.fare}` : "-"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Service fee</span>
@@ -173,7 +139,7 @@ const ConfirmRide = () => {
               <div className="border-t border-gray-200 pt-3">
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total</span>
-                  <span>₹157.80</span>
+                  <span>{rideDetails ? `₹${rideDetails.fare}` : "-"}</span>
                 </div>
               </div>
             </div>
